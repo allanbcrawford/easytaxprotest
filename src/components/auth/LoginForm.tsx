@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/supabaseClient';
 
 const LoginForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -27,23 +27,23 @@ const LoginForm: React.FC = () => {
     setLoading(true);
     
     try {
-      // Simulating authentication for now
-      // In a real app, you'd make an API call here
-      setTimeout(() => {
-        localStorage.setItem('userLoggedIn', 'true');
-        localStorage.setItem('userEmail', formData.email);
-        
-        toast({
-          title: "Logged in!",
-          description: "Welcome back to Easy Tax Protest.",
-        });
-        
-        navigate('/dashboard');
-      }, 1000);
-    } catch (error) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Logged in!",
+        description: "Welcome back to Easy Tax Protest.",
+      });
+      
+      navigate('/dashboard');
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Invalid email or password. Please try again.",
+        description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -1,0 +1,232 @@
+[
+  {
+    "MSA": "DallasFortWorth",
+    "population": 8100037,
+    "counties": [
+      { "name": "Collin", "link": "https://www.collincad.org/", "population": 1159519 },
+      { "name": "Dallas", "link": "https://www.dallascad.org/", "population": 2566063 },
+      { "name": "Delta", "link": "https://www.deltacad.org/", "population": 5283 },
+      { "name": "Denton", "link": "https://www.dentoncad.com/", "population": 1007650 },
+      { "name": "Ellis", "link": "https://www.elliscad.com/", "population": 210185 },
+      { "name": "Hunt", "link": "https://www.hunt-cad.org/", "population": 104235 },
+      { "name": "Johnson", "link": "https://www.johnsoncad.com/", "population": 198010 },
+      { "name": "Kaufman", "link": "https://www.kaufman-cad.org/", "population": 185533 },
+      { "name": "Parker", "link": "https://www.parkercad.org/", "population": 167977 },
+      { "name": "Rockwall", "link": "https://www.rockwallcad.com/", "population": 123705 },
+      { "name": "Tarrant", "link": "http://www.tad.org/", "population": 2166903 },
+      { "name": "Wise", "link": "https://www.wisecad.org/", "population": 72456 }
+    ]
+  },
+  {
+    "MSA": "Houston",
+    "population": 7510253,
+    "counties": [
+      { "name": "Austin", "link": "https://www.austincad.org/", "population": 31070 },
+      { "name": "Brazoria", "link": "https://www.brazoriacad.org/", "population": 389014 },
+      { "name": "Chambers", "link": "https://www.chamberscad.org/", "population": 52967 },
+      { "name": "Fort Bend", "link": "https://www.fbcad.org/", "population": 888627 },
+      { "name": "Galveston", "link": "https://www.galvestoncad.org/", "population": 362557 },
+      { "name": "Harris", "link": "https://www.hcad.org/", "population": 4835125 },
+      { "name": "Liberty", "link": "https://www.libertycad.com/", "population": 101029 },
+      { "name": "Montgomery", "link": "https://www.mcad-tx.org/", "population": 678490 },
+      { "name": "San Jacinto", "link": "https://www.sjcad.org/", "population": 30769 },
+      { "name": "Waller", "link": "https://www.waller-cad.org/", "population": 61707 }
+    ]
+  },
+  {
+    "MSA": "San Antonio",
+    "population": 2703999,
+    "counties": [
+      { "name": "Atascosa", "link": "https://www.atascosacad.com/", "population": 52206 },
+      { "name": "Bandera", "link": "https://www.banderacad.org/", "population": 21430 },
+      { "name": "Bexar", "link": "https://www.bcad.org/", "population": 2099807 },
+      { "name": "Comal", "link": "https://www.comalad.org/", "population": 191455 },
+      { "name": "Guadalupe", "link": "https://www.guadalupecad.org/", "population": 184239 },
+      { "name": "Kendall", "link": "https://www.kendallad.org/", "population": 53123 },
+      { "name": "Medina", "link": "https://www.medinacad.org/", "population": 54444 },
+      { "name": "Wilson", "link": "https://www.wilson-cad.org/", "population": 52660 }
+    ]
+  },
+  {
+    "MSA": "Austin",
+    "population": 2473275,
+    "counties": [
+      { "name": "Bastrop", "link": "https://www.bastropcad.org/", "population": 106781 },
+      { "name": "Caldwell", "link": "https://www.caldwellcad.org/", "population": 48243 },
+      { "name": "Hays", "link": "https://www.hayscad.com/", "population": 263557 },
+      { "name": "Travis", "link": "https://traviscad.org/", "population": 1363190 },
+      { "name": "Williamson", "link": "https://www.wcad.org/", "population": 671016 }
+    ]
+  },
+  {
+    "MSA": "McAllen",
+    "population": 898471,
+    "counties": [
+      { "name": "Hidalgo", "link": "https://www.hidalgoad.org/", "population": 882535 }
+    ]
+  },
+  {
+    "MSA": "ElPaso",
+    "population": 873331,
+    "counties": [
+      { "name": "El Paso", "link": "https://www.epcad.org/", "population": 870817 }
+    ]
+  },
+  {
+    "MSA": "KilleenTemple",
+    "population": 501333,
+    "counties": [
+      { "name": "Bell", "link": "https://www.bellcad.org/", "population": 406494 },
+      { "name": "Coryell", "link": "https://www.coryellcad.org/", "population": 75818 },
+      { "name": "Lampasas", "link": "https://www.lampasascad.org/", "population": 22606 }
+    ]
+  },
+  {
+    "MSA": "CorpusChristi",
+    "population": 448323,
+    "counties": [
+      { "name": "Aransas", "link": "https://www.aransascad.org/", "population": 24710 },
+      { "name": "Nueces", "link": "https://www.nuecescad.net/", "population": 355175 },
+      { "name": "San Patricio", "link": "https://www.sanpatcad.org/", "population": 68755 }
+    ]
+  },
+  {
+    "MSA": "BrownsvilleHarlingen",
+    "population": 426710,
+    "counties": [
+      { "name": "Cameron", "link": "https://www.cameroncad.org/", "population": 425213 }
+    ]
+  },
+  {
+    "MSA": "BeaumontPortArthur",
+    "population": 395479,
+    "counties": [
+      { "name": "Hardin", "link": "https://www.hardincad.org/", "population": 57602 },
+      { "name": "Jefferson", "link": "https://www.jcad.org/", "population": 256526 },
+      { "name": "Orange", "link": "https://www.orangecad.net/", "population": 85936 }
+    ]
+  },
+  {
+    "MSA": "Lubbock",
+    "population": 360104,
+    "counties": [
+      { "name": "Crosby", "link": "https://www.crosbycad.org/", "population": 5737 },
+      { "name": "Lubbock", "link": "https://www.lubbockcad.org/", "population": 322257 }
+    ]
+  },
+  {
+    "MSA": "Waco",
+    "population": 304865,
+    "counties": [
+      { "name": "Bosque", "link": "https://www.bosquecad.com/", "population": 18235 },
+      { "name": "Falls", "link": "https://www.fallscad.net/", "population": 16968 },
+      { "name": "McLennan", "link": "https://www.mclennancad.org/", "population": 267713 }
+    ]
+  },
+  {
+    "MSA": "Longview",
+    "population": 293498,
+    "counties": [
+      { "name": "Gregg", "link": "https://www.gcad.org/", "population": 127870 },
+      { "name": "Rusk", "link": "https://www.ruskcad.org/", "population": 52214 },
+      { "name": "Upshur", "link": "https://www.upshur-cad.org/", "population": 41753 }
+    ]
+  },
+  {
+    "MSA": "BryanCollegeStation",
+    "population": 281445,
+    "counties": [
+      { "name": "Brazos", "link": "https://www.brazoscad.org/", "population": 247669 },
+      { "name": "Burleson", "link": "https://www.burlesoncad.org/", "population": 18627 },
+      { "name": "Robertson", "link": "https://www.robertsoncad.com/", "population": 16387 }
+    ]
+  },
+  {
+    "MSA": "Amarillo",
+    "population": 272395,
+    "counties": [
+      { "name": "Armstrong", "link": "https://www.armstrongcad.org/", "population": 1887 },
+      { "name": "Carson", "link": "https://www.carsoncad.org/", "population": 5485 },
+      { "name": "Oldham", "link": "https://www.oldhamcad.org/", "population": 1758 },
+      { "name": "Potter", "link": "https://www.prad.org/", "population": 119874 },
+      { "name": "Randall", "link": "https://www.randallcounty.org/150/Appraisal-District", "population": 144803 }
+    ]
+  },
+  {
+    "MSA": "Laredo",
+    "population": 269148,
+    "counties": [
+      { "name": "Webb", "link": "https://www.webbcad.org/", "population": 272806 }
+    ]
+  },
+  {
+    "MSA": "Tyler",
+    "population": 245209,
+    "counties": [
+      { "name": "Smith", "link": "https://www.smithcad.org/", "population": 239532 }
+    ]
+  },
+  {
+    "MSA": "Midland",
+    "population": 182324,
+    "counties": [
+      { "name": "Martin", "link": "https://www.martincad.org/", "population": 5386 },
+      { "name": "Midland", "link": "https://www.midcad.org/", "population": 176732 }
+    ]
+  },
+  {
+    "MSA": "Abilene",
+    "population": 181591,
+    "counties": [
+      { "name": "Callahan", "link": "https://www.callahancad.org/", "population": 14606 },
+      { "name": "Jones", "link": "https://www.jonescad.org/", "population": 19663 },
+      { "name": "Taylor", "link": "https://www.taylor-cad.org/", "population": 143092 }
+    ]
+  },
+  {
+    "MSA": "Odessa",
+    "population": 164494,
+    "counties": [
+      { "name": "Ector", "link": "https://www.ectorcad.org/", "population": 168864 }
+    ]
+  },
+  {
+    "MSA": "WichitaFalls",
+    "population": 149947,
+    "counties": [
+      { "name": "Archer", "link": "https://www.archercad.org/", "population": 8865 },
+      { "name": "Clay", "link": "https://www.claycad.org/", "population": 10754 },
+      { "name": "Wichita", "link": "https://www.wichitacad.org/", "population": 129184 }
+    ]
+  },
+  {
+    "MSA": "ShermanDenison",
+    "population": 146907,
+    "counties": [
+      { "name": "Grayson", "link": "https://www.graysonappraisal.org/", "population": 139336 }
+    ]
+  },
+  {
+    "MSA": "Texarkana",
+    "population": 145907,
+    "counties": [
+      { "name": "Bowie", "link": "https://www.bowieappraisal.com/", "population": 91421 }
+    ]
+  },
+  {
+    "MSA": "SanAngelo",
+    "population": 120606,
+    "counties": [
+      { "name": "Irion", "link": "https://www.irioncad.org/", "population": 1813 },
+      { "name": "Tom Green", "link": "https://www.tomgreencad.com/", "population": 121516 }
+    ]
+  },
+  {
+    "MSA": "Victoria",
+    "population": 98808,
+    "counties": [
+      { "name": "Goliad", "link": "https://www.goliadcad.org/", "population": 7670 },
+      { "name": "Victoria", "link": "https://www.victoriacad.org/", "population": 91518 }
+    ]
+  }
+]

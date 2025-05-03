@@ -1,18 +1,41 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import GooglePlacesAutocompleteInput from './GooglePlacesAutocompleteInput';
+import PropertyDetailsModal from './PropertyDetailsModal';
 
 const HeroSection: React.FC = () => {
   const [address, setAddress] = useState('');
+  const [structuredAddress, setStructuredAddress] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('Address updated:', address);
+    console.log('Structured address updated:', structuredAddress);
+  }, [address, structuredAddress]);
+
+  const handlePlaceSelect = (place: any) => {
+    console.log('Place selected in HeroSection:', place);
+    if (place.formatted_address) {
+      setAddress(place.formatted_address);
+      setStructuredAddress({
+        address_line1: place.formatted_address,
+        lat: typeof place.geometry?.location?.lat === 'function' ? place.geometry.location.lat() : place.geometry?.location?.lat,
+        lng: typeof place.geometry?.location?.lng === 'function' ? place.geometry.location.lng() : place.geometry?.location?.lng,
+        formatted_address: place.formatted_address,
+      });
+    }
+  };
 
   const handleEstimate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (address.trim()) {
-      navigate('/property-assessment', { state: { address } });
+    console.log('Form submitted with:', { address, structuredAddress });
+    if (address && structuredAddress) {
+      setShowModal(true);
     }
   };
 
@@ -29,26 +52,27 @@ const HeroSection: React.FC = () => {
         
         <form 
           onSubmit={handleEstimate}
-          className="max-w-xl mx-auto bg-white rounded-lg shadow-lg p-2 flex items-center"
+          className="max-w-xl mx-auto bg-white rounded-lg p-2 flex items-center gap-2"
         >
-          <div className="flex-1 flex items-center px-3">
-            <MapPin className="text-gray-400 mr-2" size={20} />
-            <Input 
-              type="text" 
-              placeholder="Enter your property address" 
-              className="border-0 focus-visible:ring-0 text-gray-800 placeholder:text-gray-400"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
+          <div className="flex-1 flex items-center px-3 min-w-0">
+            <MapPin className="text-gray-400 mr-2 flex-shrink-0" size={20} />
+            <GooglePlacesAutocompleteInput onPlaceSelect={handlePlaceSelect} />
           </div>
           <Button 
             type="submit"
-            className="bg-secondary hover:bg-secondary-light text-white font-medium px-5 py-2"
+            className="bg-secondary hover:bg-secondary-light text-white font-medium px-5 py-2 flex-shrink-0"
+            disabled={!address}
           >
             Estimate Now
           </Button>
         </form>
       </div>
+
+      <PropertyDetailsModal 
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        initialAddress={address}
+      />
     </div>
   );
 };

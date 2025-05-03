@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/supabaseClient';
 
 const SignupForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -39,24 +39,46 @@ const SignupForm: React.FC = () => {
     setLoading(true);
     
     try {
-      // Simulating authentication for now
-      // In a real app, you'd make an API call here
-      setTimeout(() => {
-        localStorage.setItem('userLoggedIn', 'true');
-        localStorage.setItem('userEmail', formData.email);
-        localStorage.setItem('userName', formData.fullName);
-        
-        toast({
-          title: "Account created!",
-          description: "Welcome to Easy Tax Protest.",
-        });
-        
-        navigate('/dashboard');
-      }, 1000);
-    } catch (error) {
+      // Sign up with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+
+      // Create user profile in the users table
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: authData.user.id,
+              email: formData.email,
+              first_name: formData.fullName.split(' ')[0],
+              last_name: formData.fullName.split(' ').slice(1).join(' '),
+              role: 'user',
+            },
+          ]);
+
+        if (profileError) throw profileError;
+      }
+
+      toast({
+        title: "Account created!",
+        description: "Welcome to Easy Tax Protest.",
+      });
+      
+      navigate('/dashboard');
+    } catch (error: any) {
       toast({
         title: "Sign up failed",
-        description: "There was a problem creating your account.",
+        description: error.message || "There was a problem creating your account.",
         variant: "destructive",
       });
     } finally {

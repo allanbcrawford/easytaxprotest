@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -10,34 +9,51 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const PropertyAssessmentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Get address from location state or default to empty
-  const { address = '' } = location.state || {};
+  // Accept structured address from location.state
+  const {
+    property_address,
+    address_line1,
+    formatted_address,
+  } = location.state || {};
+  
+  const initialAddress = property_address || address_line1 || formatted_address || '';
   
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [propertyData, setPropertyData] = useState({
-    address,
-    propertyType: '',
-    bedrooms: '',
-    bathrooms: '',
-    squareFeet: '',
-    yearBuilt: '',
-    hasPool: false,
-    hasGarage: false,
-    needsRepair: false,
+    propertyAddress: initialAddress,
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
-    fullName: '',
-    agreeToTerms: false
+    entityOwned: '', // 'yes' or 'no'
+    entityType: '', // LLC, Corporation, Partnership, Estate, Trust, Other
+    entityName: '',
+    relationshipToEntity: '',
+    signerRole: '', // homeowner, property manager, authorized individual
   });
+  const [authUser, setAuthUser] = useState<any>(null);
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [emailPrompt, setEmailPrompt] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [passwordPrompt, setPasswordPrompt] = useState('');
+  const [confirmPasswordPrompt, setConfirmPasswordPrompt] = useState('');
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  React.useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setAuthUser(data.user);
+    });
+  }, []);
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setPropertyData(prev => ({ ...prev, [name]: value }));
   };
@@ -46,61 +62,30 @@ const PropertyAssessmentPage: React.FC = () => {
     setPropertyData(prev => ({ ...prev, [name]: !prev[name as keyof typeof prev] }));
   };
   
-  const validateStep1 = () => {
-    if (!propertyData.address.trim()) {
-      toast({
-        title: "Address required",
-        description: "Please enter your property address",
-        variant: "destructive",
-      });
+  const validateStep = () => {
+    if (!propertyData.firstName.trim() || !propertyData.lastName.trim()) {
+      toast({ title: 'Name required', description: 'Please enter your first and last name', variant: 'destructive' });
       return false;
     }
-    
-    if (!propertyData.propertyType) {
-      toast({
-        title: "Property type required",
-        description: "Please select your property type",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    return true;
-  };
-  
-  const validateStep2 = () => {
-    if (!propertyData.fullName.trim()) {
-      toast({
-        title: "Name required",
-        description: "Please enter your full name",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
     if (!propertyData.email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address",
-        variant: "destructive",
-      });
+      toast({ title: 'Email required', description: 'Please enter your email address', variant: 'destructive' });
       return false;
     }
-    
-    if (!propertyData.agreeToTerms) {
-      toast({
-        title: "Terms agreement required",
-        description: "Please agree to the terms of service",
-        variant: "destructive",
-      });
+    if (!propertyData.signerRole) {
+      toast({ title: 'Signer role required', description: 'Please confirm your role', variant: 'destructive' });
       return false;
     }
-    
+    if (propertyData.entityOwned === 'yes') {
+      if (!propertyData.entityType || !propertyData.entityName.trim() || !propertyData.relationshipToEntity.trim()) {
+        toast({ title: 'Entity info required', description: 'Please complete all entity fields', variant: 'destructive' });
+        return false;
+      }
+    }
     return true;
   };
   
   const handleNext = () => {
-    if (step === 1 && validateStep1()) {
+    if (step === 1 && validateStep()) {
       setStep(2);
       window.scrollTo(0, 0);
     }
@@ -113,30 +98,124 @@ const PropertyAssessmentPage: React.FC = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle email prompt for unauthenticated users
+  const handleEmailPrompt = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateStep2()) return;
-    
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you'd send data to backend here
-      console.log('Property data submitted:', propertyData);
-      
-      localStorage.setItem('userLoggedIn', 'true');
-      localStorage.setItem('userEmail', propertyData.email);
-      localStorage.setItem('userName', propertyData.fullName);
-      
-      toast({
-        title: "Property assessment submitted!",
-        description: "We'll analyze your property and get back to you soon.",
+    setEmailLoading(true);
+    try {
+      // Try sign up first
+      const { data, error } = await supabase.auth.signUp({
+        email: emailPrompt,
+        password: passwordPrompt,
+        options: { data: { first_name: propertyData.firstName, last_name: propertyData.lastName } }
       });
-      
+      if (error && error.message.includes('already registered')) {
+        // If already registered, try sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: emailPrompt,
+          password: passwordPrompt,
+        });
+        if (signInError) throw signInError;
+      } else if (error) {
+        throw error;
+      }
+      setShowEmailPrompt(false);
+      // Get user and continue
+      const { data: userData } = await supabase.auth.getUser();
+      setAuthUser(userData.user);
+      toast({ title: 'Logged in!', description: 'You are now logged in.' });
       navigate('/dashboard');
+    } catch (err: any) {
+      toast({ title: 'Auth failed', description: err.message || 'Could not log in.', variant: 'destructive' });
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep()) return;
+    if (!authUser) {
+      setShowEmailPrompt(true);
+      setEmailPrompt(propertyData.email);
+      return;
+    }
+    setLoading(true);
+    try {
+      // First, create or get the property record
+      const { data: propertyRecord, error: propertyError } = await supabase
+        .from('properties')
+        .insert([
+          {
+            user_id: authUser.id,
+            address_line1: propertyData.propertyAddress,
+            formatted_address: propertyData.propertyAddress,
+          },
+        ])
+        .select()
+        .single();
+
+      if (propertyError) throw propertyError;
+
+      // Create entity record if needed
+      let entityId = null;
+      if (propertyData.entityOwned === 'yes') {
+        const { data: entityRecord, error: entityError } = await supabase
+          .from('entities')
+          .insert([
+            {
+              user_id: authUser.id,
+              name: propertyData.entityName,
+              type: propertyData.entityType,
+              relationship_to_entity: propertyData.relationshipToEntity,
+            },
+          ])
+          .select()
+          .single();
+        
+        if (entityError) throw entityError;
+        entityId = entityRecord.id;
+      }
+
+      // Then create the submission record
+      const { error: submissionError } = await supabase
+        .from('submissions')
+        .insert([
+          {
+            user_id: authUser.id,
+            property_id: propertyRecord.id,
+            entity_id: entityId,
+            property_address: propertyData.propertyAddress,
+            first_name: propertyData.firstName,
+            last_name: propertyData.lastName,
+            email: propertyData.email,
+            phone: propertyData.phone,
+            entity_owned: propertyData.entityOwned,
+            entity_type: propertyData.entityType,
+            entity_name: propertyData.entityName,
+            relationship_to_entity: propertyData.relationshipToEntity,
+            signer_role: propertyData.signerRole,
+            status: 'new',
+          },
+        ]);
+
+      if (submissionError) throw submissionError;
+
+      toast({ 
+        title: 'Form submitted!', 
+        description: 'Thank you for your submission. We will review your property assessment request shortly.' 
+      });
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      toast({ 
+        title: 'Submission failed', 
+        description: err.message || 'There was a problem submitting your form. Please try again.', 
+        variant: 'destructive' 
+      });
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -174,253 +253,148 @@ const PropertyAssessmentPage: React.FC = () => {
               </div>
             </div>
             
+            {/* Email prompt modal for unauthenticated users */}
+            {showEmailPrompt && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+                <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full">
+                  <h2 className="text-xl font-bold mb-4">Sign Up or Log In</h2>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    setEmailLoading(true);
+                    try {
+                      // Try sign up first
+                      const { data, error } = await supabase.auth.signUp({
+                        email: emailPrompt,
+                        password: passwordPrompt,
+                        options: { data: { first_name: propertyData.firstName, last_name: propertyData.lastName } }
+                      });
+                      if (error && error.message.includes('already registered')) {
+                        // If already registered, try sign in
+                        const { error: signInError } = await supabase.auth.signInWithPassword({
+                          email: emailPrompt,
+                          password: passwordPrompt,
+                        });
+                        if (signInError) throw signInError;
+                      } else if (error) {
+                        throw error;
+                      }
+                      setShowEmailPrompt(false);
+                      // Get user and continue
+                      const { data: userData } = await supabase.auth.getUser();
+                      setAuthUser(userData.user);
+                      toast({ title: 'Logged in!', description: 'You are now logged in.' });
+                      navigate('/dashboard');
+                    } catch (err: any) {
+                      toast({ title: 'Auth failed', description: err.message || 'Could not log in.', variant: 'destructive' });
+                    } finally {
+                      setEmailLoading(false);
+                    }
+                  }} className="space-y-4">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={emailPrompt}
+                      onChange={e => setEmailPrompt(e.target.value)}
+                      required
+                    />
+                    <Input
+                      type="password"
+                      placeholder="Password"
+                      value={passwordPrompt}
+                      onChange={e => setPasswordPrompt(e.target.value)}
+                      required
+                    />
+                    <Input
+                      type="password"
+                      placeholder="Confirm Password"
+                      value={confirmPasswordPrompt}
+                      onChange={e => setConfirmPasswordPrompt(e.target.value)}
+                      required
+                    />
+                    <Button type="submit" className="w-full" disabled={emailLoading}>
+                      {emailLoading ? 'Processing...' : 'Continue'}
+                    </Button>
+                  </form>
+                  <Button variant="outline" className="w-full mt-2" onClick={() => setShowEmailPrompt(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {step === 1 ? 'Property Details' : 'Contact Information'}
-                </CardTitle>
-                <CardDescription>
-                  {step === 1 
-                    ? 'Tell us about your property to help us with your tax protest' 
-                    : 'Provide your contact information to create your account'}
-                </CardDescription>
+                <CardTitle>Contact & Entity Information</CardTitle>
+                <CardDescription>Fill out your contact and (if applicable) entity information below.</CardDescription>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-6">
-                  {step === 1 ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="propertyAddress">Property Address</Label>
+                    <Input id="propertyAddress" name="propertyAddress" value={propertyData.propertyAddress} onChange={handleChange} placeholder="123 Main St, Austin, TX 78701" required />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input id="firstName" name="firstName" value={propertyData.firstName} onChange={handleChange} placeholder="John" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input id="lastName" name="lastName" value={propertyData.lastName} onChange={handleChange} placeholder="Doe" required />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input id="email" name="email" type="email" value={propertyData.email} onChange={handleChange} placeholder="john@example.com" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" name="phone" type="tel" value={propertyData.phone} onChange={handleChange} placeholder="(123) 456-7890" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Is this property owned by a trust, LLC, or other entity?</Label>
+                    <div className="flex gap-4">
+                      <label><input type="radio" name="entityOwned" value="yes" checked={propertyData.entityOwned === 'yes'} onChange={handleChange} /> Yes</label>
+                      <label><input type="radio" name="entityOwned" value="no" checked={propertyData.entityOwned === 'no'} onChange={handleChange} /> No</label>
+                    </div>
+                  </div>
+                  {propertyData.entityOwned === 'yes' && (
                     <>
                       <div className="space-y-2">
-                        <Label htmlFor="address">Property Address</Label>
-                        <Input
-                          id="address"
-                          name="address"
-                          value={propertyData.address}
-                          onChange={handleChange}
-                          placeholder="123 Main St, Austin, TX 78701"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="propertyType">Property Type</Label>
-                        <select
-                          id="propertyType"
-                          name="propertyType"
-                          value={propertyData.propertyType}
-                          onChange={(e) => setPropertyData(prev => ({ ...prev, propertyType: e.target.value }))}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          required
-                        >
-                          <option value="">Select property type</option>
-                          <option value="Single Family">Single Family Home</option>
-                          <option value="Condo">Condominium</option>
-                          <option value="Townhouse">Townhouse</option>
-                          <option value="Multi-Family">Multi-Family</option>
-                          <option value="Commercial">Commercial Property</option>
+                        <Label htmlFor="entityType">Entity Type</Label>
+                        <select id="entityType" name="entityType" value={propertyData.entityType} onChange={handleChange} className="w-full border rounded px-3 py-2">
+                          <option value="">Select entity type</option>
+                          <option value="LLC">LLC</option>
+                          <option value="Corporation">Corporation</option>
+                          <option value="Partnership">Partnership</option>
+                          <option value="Estate">Estate</option>
+                          <option value="Trust">Trust</option>
+                          <option value="Other">Other</option>
                         </select>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="bedrooms">Bedrooms</Label>
-                          <Input
-                            id="bedrooms"
-                            name="bedrooms"
-                            type="number"
-                            min="0"
-                            value={propertyData.bedrooms}
-                            onChange={handleChange}
-                            placeholder="3"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="bathrooms">Bathrooms</Label>
-                          <Input
-                            id="bathrooms"
-                            name="bathrooms"
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            value={propertyData.bathrooms}
-                            onChange={handleChange}
-                            placeholder="2"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="squareFeet">Square Feet</Label>
-                          <Input
-                            id="squareFeet"
-                            name="squareFeet"
-                            type="number"
-                            min="0"
-                            value={propertyData.squareFeet}
-                            onChange={handleChange}
-                            placeholder="1800"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="yearBuilt">Year Built</Label>
-                          <Input
-                            id="yearBuilt"
-                            name="yearBuilt"
-                            type="number"
-                            min="1900"
-                            max={new Date().getFullYear()}
-                            value={propertyData.yearBuilt}
-                            onChange={handleChange}
-                            placeholder="1995"
-                          />
-                        </div>
-                      </div>
-                      
                       <div className="space-y-2">
-                        <Label>Property Features</Label>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="hasPool"
-                              checked={propertyData.hasPool}
-                              onCheckedChange={() => handleCheckboxChange('hasPool')}
-                            />
-                            <label
-                              htmlFor="hasPool"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Swimming Pool
-                            </label>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="hasGarage"
-                              checked={propertyData.hasGarage}
-                              onCheckedChange={() => handleCheckboxChange('hasGarage')}
-                            />
-                            <label
-                              htmlFor="hasGarage"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Garage
-                            </label>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="needsRepair"
-                              checked={propertyData.needsRepair}
-                              onCheckedChange={() => handleCheckboxChange('needsRepair')}
-                            />
-                            <label
-                              htmlFor="needsRepair"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Needs Significant Repairs
-                            </label>
-                          </div>
-                        </div>
+                        <Label htmlFor="entityName">Entity Name</Label>
+                        <Input id="entityName" name="entityName" value={propertyData.entityName} onChange={handleChange} placeholder="Entity Name" required />
                       </div>
-                    </>
-                  ) : (
-                    <>
                       <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          name="fullName"
-                          value={propertyData.fullName}
-                          onChange={handleChange}
-                          placeholder="John Doe"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={propertyData.email}
-                          onChange={handleChange}
-                          placeholder="john@example.com"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number (optional)</Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          value={propertyData.phone}
-                          onChange={handleChange}
-                          placeholder="(123) 456-7890"
-                        />
-                      </div>
-                      
-                      <div className="flex items-start space-x-2 pt-4">
-                        <Checkbox
-                          id="agreeToTerms"
-                          checked={propertyData.agreeToTerms}
-                          onCheckedChange={() => handleCheckboxChange('agreeToTerms')}
-                          required
-                        />
-                        <div className="grid gap-1.5 leading-none">
-                          <label
-                            htmlFor="agreeToTerms"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            I agree to the Terms of Service and Privacy Policy
-                          </label>
-                          <p className="text-xs text-gray-500">
-                            By checking this box, you agree to our{" "}
-                            <a href="/terms" className="text-primary hover:underline">
-                              Terms of Service
-                            </a>{" "}
-                            and{" "}
-                            <a href="/privacy" className="text-primary hover:underline">
-                              Privacy Policy
-                            </a>
-                            .
-                          </p>
-                        </div>
+                        <Label htmlFor="relationshipToEntity">Relationship to Entity</Label>
+                        <Input id="relationshipToEntity" name="relationshipToEntity" value={propertyData.relationshipToEntity} onChange={handleChange} placeholder="e.g. Trustee, Member, Executor" required />
                       </div>
                     </>
                   )}
+                  <div className="space-y-2">
+                    <Label htmlFor="signerRole">Please confirm that you are signing this form as:</Label>
+                    <select id="signerRole" name="signerRole" value={propertyData.signerRole} onChange={handleChange} className="w-full border rounded px-3 py-2" required>
+                      <option value="">Select role</option>
+                      <option value="homeowner">Homeowner</option>
+                      <option value="property manager">Property Manager</option>
+                      <option value="authorized individual">Authorized Individual</option>
+                    </select>
+                  </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  {step === 1 ? (
-                    <>
-                      <Button variant="outline" type="button" onClick={() => navigate('/')}>
-                        Cancel
-                      </Button>
-                      <Button type="button" onClick={handleNext} className="bg-secondary hover:bg-secondary-light">
-                        Next Step
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="outline" type="button" onClick={handlePrevious}>
-                        Previous
-                      </Button>
-                      <Button type="submit" className="bg-secondary hover:bg-secondary-light" disabled={loading}>
-                        {loading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          'Submit'
-                        )}
-                      </Button>
-                    </>
-                  )}
+                <CardFooter className="flex justify-end">
+                  <Button type="submit" className="bg-secondary hover:bg-secondary-light" disabled={loading}>
+                    {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>) : 'Submit'}
+                  </Button>
                 </CardFooter>
               </form>
             </Card>
