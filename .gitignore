@@ -1,4 +1,33 @@
-node_modules
+# Large data files
+county_data/harris_county/real_acct.json
+county_data/harris_county/real_acct.txt
+county_data/harris_county/permits.txt
+county_data/harris_county/deeds.txt
+county_data/harris_county/owners.txt
+county_data/harris_county/parcel_tieback.txt
+county_data/harris_county/real_neighborhood_code.txt
+county_data/harris_county/real_mnrl.txt
+
+# Node modules and dependencies
+node_modules/
+package-lock.json
 
 # Environment variables
 .env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
