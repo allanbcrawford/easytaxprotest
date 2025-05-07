@@ -16,6 +16,7 @@ import SignaturesPage from "./pages/SignaturesPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import BillingPage from "./pages/BillingPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import { useEffect } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/dashboard/profile" element={<UserProfilePage />} />
             <Route path="/dashboard/settings" element={<SettingsPage />} />
             <Route path="/dashboard/billing" element={<BillingPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
