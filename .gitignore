@@ -1,12 +1,5 @@
 # Large data files
-county_data/harris_county/real_acct.json
-county_data/harris_county/real_acct.txt
-county_data/harris_county/permits.txt
-county_data/harris_county/deeds.txt
-county_data/harris_county/owners.txt
-county_data/harris_county/parcel_tieback.txt
-county_data/harris_county/real_neighborhood_code.txt
-county_data/harris_county/real_mnrl.txt
+county_data/
 
 # Node modules and dependencies
 node_modules/
@@ -31,3 +24,6 @@ package-lock.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Git backup
+.git.bak/
