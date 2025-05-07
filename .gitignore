@@ -24,6 +24,3 @@ package-lock.json
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Git backup
-.git.bak/
